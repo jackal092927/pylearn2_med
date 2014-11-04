@@ -1,0 +1,43 @@
+!obj:pylearn2.train.Train
+{
+    dataset: &train !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+    {
+        which_set: 'train',
+    },
+
+    model: !obj:pylearn2.models.softmax_regression.SoftmaxRegression
+    {
+        n_classes: %(n_classes)i,
+        irange: 0.,
+        nvis: %(nvis)i
+    },
+
+    algorithm: !obj:pylearn2.training_algorithms.bgd.BGD
+    {
+        batch_size: %(batch_size)i,
+        line_search_mode: 'exhaustive',
+        conjugate: 1,
+        monitoring_dataset:
+        {
+            'train' : *train,
+            'valid' : !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+            {
+                which_set: 'test',
+            }
+        },
+        termination_criterion: !obj:pylearn2.termination_criteria.MonitorBased
+        {
+            channel_name: "valid_y_misclass"
+        }
+    },
+    extensions:
+    [
+        !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest
+        {
+             channel_name: 'valid_y_misclass',
+             save_path: %(best_result_file)s
+        },
+    ],
+    save_path: "softmax_regression.pkl",
+    save_freq: 1
+}

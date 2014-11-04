@@ -1,0 +1,47 @@
+!obj:pylearn2.train.Train {
+    dataset: &train !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+    {
+        which_set: 'train'
+    },
+
+    model: !obj:pylearn2.models.rbm.GaussianBinaryRBM
+    {
+        nvis : %(nvis)i,
+        nhid : %(nhid)i,
+        irange: 0.05,
+        energy_function_class : !obj:pylearn2.energy_functions.rbm_energy.grbm_type_1 {},
+        learn_sigma : True,
+        init_sigma : .4,
+        init_bias_hid : -2.,
+        mean_vis : False,
+        sigma_lr_scale : 1e-3
+
+    },
+
+
+    algorithm: !obj:pylearn2.training_algorithms.sgd.SGD
+    {
+        learning_rate : 1e-1,
+        batch_size : %(batch_size)i,
+        monitoring_batches : %(monitoring_batches)i,
+        monitoring_dataset : *train,
+
+        cost : !obj:pylearn2.costs.ebm_estimation.SMD
+        {
+
+            corruptor : !obj:pylearn2.corruption.GaussianCorruptor
+            {
+                    stdev : 0.9
+            },
+        },
+        termination_criterion : !obj:pylearn2.termination_criteria.MonitorBased
+        {
+            prop_decrease : 0.01,
+            N : 1,
+        },
+    },
+    extensions : [!obj:pylearn2.training_algorithms.sgd.MonitorBasedLRAdjuster {}],
+    save_path: "%(save_path)s/dl2_l1_grbm-sgd.pkl",
+    save_freq: 1
+
+}

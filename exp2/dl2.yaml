@@ -1,0 +1,73 @@
+!obj:pylearn2.train.Train
+{
+    dataset: &train !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+    {
+        which_set: 'train'
+    },
+    model: !obj:pylearn2.models.mlp.MLP
+    {
+        batch_size: %(batch_size)i,
+        layers:
+        [
+                 !obj:pylearn2.models.mlp.PretrainedLayer
+                 {
+                     layer_name: 'h1',
+                     layer_content: !pkl: "%(save_path)s/dl2_l1_grbm-sgd.pkl"
+                 },
+                 !obj:pylearn2.models.mlp.PretrainedLayer
+                 {
+                     layer_name : 'h2',
+                     layer_content: !pkl: "%(save_path)s/dl2_l2_rbm.pkl"
+                 },
+                 !obj:pylearn2.models.mlp.Softmax
+                 {
+                     max_col_norm: 1.9365,
+                     layer_name: 'y',
+                     n_classes: %(n_classes)i,
+                     irange: .005
+                 }
+        ],
+        nvis: %(nvis)i
+    },
+    
+    algorithm: !obj:pylearn2.training_algorithms.bgd.BGD
+    {
+
+        batch_size: %(bgd_batch_size)i,
+        line_search_mode: 'exhaustive',
+        conjugate: 1,
+        monitoring_dataset:
+            {
+                'valid' : !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+                {
+                              which_set: 'test',
+                },
+            },
+        cost: !obj:pylearn2.costs.mlp.Default {},
+        termination_criterion: !obj:pylearn2.termination_criteria.And
+        {
+            criteria:
+            [
+                !obj:pylearn2.termination_criteria.MonitorBased
+                {
+                    channel_name: "valid_y_misclass",
+                    prop_decrease: 0.,
+                    N: 100
+                },
+                !obj:pylearn2.termination_criteria.EpochCounter
+                {
+                    max_epochs: %(max_epochs)i
+                }
+            ]
+        }
+    },
+
+    extensions:
+    [
+        !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest
+        {
+            channel_name: 'valid_y_misclass',
+            save_path: "%(save_path)s/dl2_grbm-sgd_best.pkl"
+        },
+    ]
+}
