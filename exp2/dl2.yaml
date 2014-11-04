@@ -17,7 +17,7 @@
                  !obj:pylearn2.models.mlp.PretrainedLayer
                  {
                      layer_name : 'h2',
-                     layer_content: !pkl: "%(save_path)s/dl2_l2_sde.pkl"
+                     layer_content: !pkl: "%(save_path)s/dl2_l2_dae.pkl"
                  },
                  !obj:pylearn2.models.mlp.Softmax
                  {
