@@ -12,11 +12,11 @@ def train_yaml(yaml_file):
 
 def train(yaml_file_path, save_path):
     yaml = open("{0}/dl2_l2_rbm.yaml".format(yaml_file_path), 'r').read()
-    hyper_params = {'nvis' : 1700,
+    hyper_params = {'nvis': 1700,
                     'detector_layer_dim': 400,
                     'monitoring_batches': 10,
                     'max_epochs': 300,
-                    'batch_size' : 30,
+                    'batch_size': 30,
                     'save_path': save_path}
 
     yaml = yaml % (hyper_params)
@@ -32,5 +32,37 @@ def train_dbm():
     train(".", ".")
 
 
+def pre_train_rbm(yaml_file_path, save_path):
+    yaml = open("{0}/dl2_l2_rbm-sgd.yaml".format(yaml_file_path), 'r').read()
+    hyper_params = {'nvis': 1700,
+                    'nhid': 400,
+                    'monitoring_batches': 10,
+                    'max_epochs': 300,
+                    'batch_size': 30,
+                    'save_path': save_path}
+
+    yaml = yaml % (hyper_params)
+    # print yaml
+    train_yaml(yaml)
+
+
+def pre_train_dae(yaml_file_path, save_path):
+    yaml = open("{0}/dl2_l2_dae.yaml".format(yaml_file_path), 'r').read()
+    hyper_params = {'nvis': 1700,
+                    'nhid': 400,
+                    'monitoring_batches' : 10,
+                    'max_epochs': 50,
+                    'batch_size': 30,
+                    'save_path': save_path}
+
+    yaml = yaml % (hyper_params)
+    # print yaml
+    train_yaml(yaml)
+
+def train_rbm():
+    pre_train_rbm(".", ".")
+
+
+
 if __name__ == '__main__':
-    train_dbm()
+    pre_train_rbm(".", ".")

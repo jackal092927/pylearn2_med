@@ -1,44 +1,97 @@
+# This file shows how to train a binary RBM on MNIST by viewing it as a single layer DBM.
+# The hyperparameters in this file aren't especially great; they're mostly chosen to demonstrate
+# the interface. Feel free to suggest better hyperparameters!
 !obj:pylearn2.train.Train
 {
-    dataset: &train !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2 {
-        raw: !obj:pylearn2.datasets.mnist.MNIST
+    # For this example, we will train on a binarized version of MNIST.
+    # We binarize by drawing samples--if an MNIST pixel is set to 0.9,
+    # we make binary pixel that is 1 with probability 0.9. We redo the
+    # sampling every time the example is presented to the learning
+    # algorithm.
+    # In pylearn2, we do this by making a Binarizer dataset. The Binarizer
+    # is a dataset that can draw samples like this in terms of any
+    # input dataset with values in [0,1].
+
+    dataset: &raw_data !obj:pylearn2.datasets.binarizer.Binarizer
+    {
+        raw: &data !obj:pylearn2.datasets.transformer_dataset.TransformerDataset
         {
-            which_set: 'train',
+            raw: &raw_train !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+            {
+                which_set: 'train',
+            },
+            transformer: !pkl: "%(save_path)s/dl2_l1_grbm-sgd.pkl"
         },
-        transformer: !pkl: "%(save_path)s/dl2_l1_gram-sgd.pkl"
     },
 
-    model: !obj:pylearn2.models.rbm.GaussianBinaryRBM
+    model: !obj:pylearn2.models.rbm.RBM
     {
         nvis : %(nvis)i,
         nhid : %(nhid)i,
-        irange: 0.05,
-        energy_function_class : !obj:pylearn2.energy_functions.rbm_energy.grbm_type_1 {},
-        learn_sigma : True,
-        init_sigma : .4,
-        init_bias_hid : -2.,
-        mean_vis : False,
-        sigma_lr_scale : 1e-3
+
+        irange : 0.05,
+        init_bias_hid : -2,
 
     },
-
 
     algorithm: !obj:pylearn2.training_algorithms.sgd.SGD
     {
-        learning_rate : 1e-1,
-        batch_size : %(batch_size)i,
-        monitoring_batches : %(monitoring_batches)i,
-        monitoring_dataset : *train,
-
-        cost : !obj:pylearn2.costs.autoencoder.MeanSquaredReconstructionError {},
-        termination_criterion : !obj:pylearn2.termination_criteria.MonitorBased
+        learning_rate: 1e-1,
+        learning_rule: !obj:pylearn2.training_algorithms.learning_rule.Momentum
         {
-            prop_decrease : 0.01,
-            N : 1,
+            init_momentum: 0.5
         },
-    },
-    extensions : [!obj:pylearn2.training_algorithms.sgd.MonitorBasedLRAdjuster {}],
-    save_path: "%(save_path)s/dl2_l2_rbm-sgd.pkl",
-    save_freq: 1
+        batch_size : %(batch_size)i,
+        monitoring_batches: %(monitoring_batches)i,
+        monitoring_dataset : *data,
+        cost : !obj:pylearn2.costs.cost.SumOfCosts
+        {
+             costs:
+             [
+                  # The first term of our cost function is variational PCD.
+                  # For the RBM, the variational approximation is exact, so
+                  # this is really just PCD. In deeper models, it means we
+                  # use mean field rather than Gibbs sampling in the positive phase.
+                  !obj:pylearn2.costs.dbm.VariationalPCD
+                  {
+                     # Here we specify how many fantasy particles to maintain
+                     num_chains: 100,
+                     # Here we specify how many steps of Gibbs sampling to do between
+                     # each parameter update.
+                     num_gibbs_steps: 5
+                  },
+                  # The second term of our cost function is a little bit of weight
+                  # decay.
+                  !obj:pylearn2.costs.dbm.WeightDecay
+                  {
+                      coeffs: [ .0001  ]
+                  },
+                  # Finally, we regularize the RBM to sparse, using a method copied
+                  # from Ruslan Salakhutdinov's DBM demo
+                  !obj:pylearn2.costs.dbm.TorontoSparsity
+                  {
+                     targets: [ .2 ],
+                     coeffs: [ .001 ],
+                  }
+             ],
+        },
 
+        termination_criterion: !obj:pylearn2.termination_criteria.EpochCounter
+        { max_epochs: %(max_epochs)i },
+
+    },
+
+    extensions:
+    [
+        !obj:pylearn2.training_algorithms.learning_rule.MomentumAdjustor
+        {
+            final_momentum: .9,
+            start: 5,
+            saturate: 6
+        }
+    ],
+
+    save_path: "%(save_path)s/dl2_l2_rbm-sgd.pkl",
+    # This says to save it every epoch
+    save_freq : 1
 }
