@@ -1,0 +1,13 @@
+Tao’s:
+on feature850-2:	0.2116
+on feature1858-2:	0.2007
+
+mlp3-1700-1700-on-feature850-2:
+mean:	0.233333
+std:	0.051520
+mlp4-1700-1700-on-feature850-2:
+mean:	0.225000
+std:	0.0528508
+
+
+
