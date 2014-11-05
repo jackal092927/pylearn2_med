@@ -15,7 +15,7 @@ from pylearn2.corruption import BinomialCorruptor
 from pylearn2.corruption import GaussianCorruptor
 from pylearn2.costs.mlp import Default
 from pylearn2.models.autoencoder import Autoencoder, DenoisingAutoencoder
-from pylearn2.models.rbm import GaussianBinaryRBM
+from pylearn2.models.rbm import GaussianBinaryRBM, RBM
 from pylearn2.models.softmax_regression import SoftmaxRegression
 from pylearn2.training_algorithms.sgd import SGD
 from pylearn2.costs.autoencoder import MeanSquaredReconstructionError
@@ -142,6 +142,7 @@ def get_grbm(structure):
         }
 
     return GaussianBinaryRBM(**config)
+
 
 def get_logistic_regressor(structure):
     n_input, n_output = structure

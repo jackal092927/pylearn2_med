@@ -1,0 +1,71 @@
+!obj:pylearn2.train.Train {
+    dataset: &train !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+        {
+            which_set: 'train',
+        },
+
+    model: !obj:pylearn2.models.mlp.MLP {
+        layers: [ !obj:pylearn2.models.mlp.Sigmoid {
+                     layer_name: 'h0',
+                     dim: %(dim_h0)i,
+                     sparse_init: 15
+                 }, !obj:pylearn2.models.mlp.Sigmoid {
+                     layer_name: 'h1',
+                     dim: %(dim_h1)i,
+                     sparse_init: %(sparse_init_h1)i
+                 }, !obj:pylearn2.models.mlp.Softmax {
+                     layer_name: 'y',
+                     n_classes: 2,
+                     irange: 0.
+                 }
+                ],
+        nvis: 850,
+    },
+
+    algorithm: !obj:pylearn2.training_algorithms.bgd.BGD
+    {
+        batch_size: 1140,
+        line_search_mode: 'exhaustive',
+        conjugate: 1,
+        monitoring_dataset:
+            {
+                'train' : *train,
+                'valid' : !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+                {
+                    which_set: 'valid',
+                },
+                'test' : !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+                {
+                    which_set: 'test',
+                },
+            },
+        cost: !obj:pylearn2.costs.cost.SumOfCosts
+        {
+            costs:
+            [
+                    !obj:pylearn2.costs.mlp.Default { },
+                    !obj:pylearn2.costs.mlp.WeightDecay
+                    {
+                        coeffs: [ .00005, .00005, .00005 ]
+                    }
+            ]
+        },
+        termination_criterion: !obj:pylearn2.termination_criteria.And {
+            criteria: [
+                !obj:pylearn2.termination_criteria.MonitorBased {
+                    channel_name: "valid_y_misclass",
+                    prop_decrease: 0.,
+                    N: 10
+                },
+                !obj:pylearn2.termination_criteria.EpochCounter {
+                    max_epochs: %(max_epochs)i
+                }
+            ]
+        }
+    },
+    extensions: [ !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest {
+             channel_name: 'test_y_misclass',
+             save_path: "%(save_path)s/mlp2-sigmoid_best.pkl"
+        },
+    ]
+}

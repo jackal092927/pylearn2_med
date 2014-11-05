@@ -1,17 +1,19 @@
+from pylearn2.costs.cost import SumOfCosts
+
 __author__ = 'Jackal'
 
 from cin_feature2 import CIN_FEATURE2
 
 
-MAX_EPOCHS_UNSUPERVISED = 1
-MAX_EPOCHS_SUPERVISED = 2
+MAX_EPOCHS_UNSUPERVISED = 15
+MAX_EPOCHS_SUPERVISED = 200
 
 from pylearn2.config import yaml_parse
-from pylearn2.corruption import BinomialCorruptor
+from pylearn2.corruption import BinomialCorruptor, DropoutCorruptor
 from pylearn2.corruption import GaussianCorruptor
 from pylearn2.costs.mlp import Default
 from pylearn2.models.autoencoder import Autoencoder, DenoisingAutoencoder
-from pylearn2.models.rbm import GaussianBinaryRBM
+from pylearn2.models.rbm import GaussianBinaryRBM, RBM
 from pylearn2.models.softmax_regression import SoftmaxRegression
 from pylearn2.training_algorithms.sgd import SGD
 from pylearn2.costs.autoencoder import MeanSquaredReconstructionError
@@ -20,7 +22,7 @@ from pylearn2.datasets.dense_design_matrix import DenseDesignMatrix
 from pylearn2.energy_functions.rbm_energy import GRBM_Type_1
 from pylearn2.blocks import StackedBlocks
 from pylearn2.datasets.transformer_dataset import TransformerDataset
-from pylearn2.costs.ebm_estimation import SMD
+from pylearn2.costs.ebm_estimation import SMD, CDk
 from pylearn2.training_algorithms.sgd import MonitorBasedLRAdjuster
 from pylearn2.train import Train
 from optparse import OptionParser
@@ -82,6 +84,17 @@ def get_grbm(structure):
 
     return GaussianBinaryRBM(**config)
 
+def get_rbm(structure):
+    n_input, n_output = structure
+    config = {
+        'nvis': n_input,
+        'nhid': n_output,
+        "irange": 0.05,
+        "init_bias_hid": -2.,
+    }
+
+    return RBM(**config)
+
 
 def get_logistic_regressor(structure):
     n_input, n_output = structure
@@ -128,7 +141,25 @@ def get_layer_trainer_sgd_autoencoder(layer, trainset):
     return Train(model=model,
                  algorithm=train_algo,
                  extensions=extensions,
-                 dataset=trainset)
+                 dataset=trainset,
+                 save_path='my_train.pkl')
+
+
+def get_layer_trainer_sgd_grbm(layer, trainset):
+    train_algo = SGD(
+        learning_rate=1e-1,
+        batch_size=5,
+        # "batches_per_iter" : 2000,
+        monitoring_batches=20,
+        monitoring_dataset=trainset,
+        cost=SMD(corruptor=GaussianCorruptor(stdev=0.8)),
+        termination_criterion=EpochCounter(max_epochs=MAX_EPOCHS_UNSUPERVISED),
+    )
+    model = layer
+    extensions = [MonitorBasedLRAdjuster()]
+    return Train(model=model, algorithm=train_algo,
+                 save_path='l1_grbm.pkl', save_freq=1,
+                 extensions=extensions, dataset=trainset)
 
 
 def get_layer_trainer_sgd_rbm(layer, trainset):
@@ -138,13 +169,13 @@ def get_layer_trainer_sgd_rbm(layer, trainset):
         # "batches_per_iter" : 2000,
         monitoring_batches=20,
         monitoring_dataset=trainset,
-        cost=SMD(corruptor=GaussianCorruptor(stdev=0.4)),
+        cost=CDk(nsteps=10),
         termination_criterion=EpochCounter(max_epochs=MAX_EPOCHS_UNSUPERVISED),
     )
     model = layer
-    extensions = [MonitorBasedLRAdjuster()]
+    extensions = [MonitorBasedLRAdjuster(channel_name='reconstruction_error')]
     return Train(model=model, algorithm=train_algo,
-                 save_path='grbm.pkl', save_freq=1,
+                 save_path='l2_rbm.pkl', save_freq=1,
                  extensions=extensions, dataset=trainset)
 
 
@@ -184,29 +215,30 @@ def main(args=None):
 
     # build layers
     layers = []
-    structure = [[n_input, 10], [10, 50], [50, 100], [100, n_output]]
+    structure = [[n_input, 1700], [1700, 200], [200, n_output]]
     # layer 0: gaussianRBM
     layers.append(get_grbm(structure[0]))
     # layer 1: denoising AE
-    layers.append(get_denoising_autoencoder(structure[1]))
+    layers.append(get_rbm(structure[1]))
     # layer 2: AE
-    layers.append(get_autoencoder(structure[2]))
+    #layers.append(get_rbm(structure[2]))
     # layer 3: logistic regression used in supervised training
-    layers.append(get_logistic_regressor(structure[3]))
+    layers.append(get_logistic_regressor(structure[2]))
 
 
     # construct training sets for different layers
     trainset = [trainset,
                 TransformerDataset(raw=trainset, transformer=layers[0]),
-                TransformerDataset(raw=trainset, transformer=StackedBlocks(layers[0:2])),
-                TransformerDataset(raw=trainset, transformer=StackedBlocks(layers[0:3]))]
+                TransformerDataset(raw=trainset, transformer=StackedBlocks(layers[0:2]))
+                # , TransformerDataset(raw=trainset, transformer=StackedBlocks(layers[0:3]))
+    ]
 
     # construct layer trainers
     layer_trainers = []
-    layer_trainers.append(get_layer_trainer_sgd_rbm(layers[0], trainset[0]))
-    layer_trainers.append(get_layer_trainer_sgd_autoencoder(layers[1], trainset[1]))
-    layer_trainers.append(get_layer_trainer_sgd_autoencoder(layers[2], trainset[2]))
-    layer_trainers.append(get_layer_trainer_logistic(layers[3], trainset[3]))
+    layer_trainers.append(get_layer_trainer_sgd_grbm(layers[0], trainset[0]))
+    layer_trainers.append(get_layer_trainer_sgd_rbm(layers[1], trainset[1]))
+    #layer_trainers.append(get_layer_trainer_sgd_autoencoder(layers[2], trainset[2]))
+    layer_trainers.append(get_layer_trainer_logistic(layers[2], trainset[2]))
 
     # unsupervised pretraining
     for i, layer_trainer in enumerate(layer_trainers[0:3]):
@@ -221,8 +253,8 @@ def main(args=None):
     print '------------------------------------------------------'
     print '\n'
 
-    # supervised training
-    layer_trainers[-1].main_loop()
+    # supervised training -- finetunning?
+    # layer_trainers[-1].main_loop()
 
 
 if __name__ == '__main__':
