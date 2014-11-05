@@ -53,7 +53,7 @@ def train_mlp4(data_path,
                dim_v=850,
                dim_h=1700):
 
-    save_path = "mlp4-{}-{}-on-".format(dim_h, dim_h) + datapath
+    save_path = "mlp4-{}-{}-on-".format(dim_h, dim_h) + data_path
     dim_h1 = dim_h0 = dim_h
     save_path.format(dim_h0, dim_h1)
 
@@ -72,7 +72,7 @@ def train_mlp4(data_path,
 
     train_2 = yaml_parse.load(train_2)
     print "save to {}".format(save_path)
-    train_2.main_loop()
+    # train_2.main_loop()
     return save_path
 
 def train_mymlp0(
@@ -109,20 +109,24 @@ def cross_valid(times, dim_h):
     return result
 
 
-datapath = "feature850-2-{}.pkl".format(str(1))
-dim_h = 1700
-cross_n = 9
-# savepath = "./mlp4_1700.1700-on-{}".format(datapath)
-# savepath = "./mlp-pretain0.pkl"
-results = []
-# results.append(train_mlp3(datapath))
-# results.append(train_mlp4(datapath))
-results += cross_valid(cross_n, dim_h)
 
-#train_mymlp0(datapath)
-#train_mlp4(datapath, savepath)
-# resultfiles = cross_valid(9)
-# print resultfiles
+
+
+if __name__ == '__main__':
+    datapath = "feature850-2-{}.pkl".format(str(1))
+    dim_h = 1700
+    cross_n = 9
+    # savepath = "./mlp4_1700.1700-on-{}".format(datapath)
+    # savepath = "./mlp-pretain0.pkl"
+    results = []
+    # results.append(train_mlp3(datapath))
+    # results.append(train_mlp4(datapath))
+    results += cross_valid(cross_n, dim_h)
+
+    # train_mymlp0(datapath)
+    #train_mlp4(datapath, savepath)
+    # resultfiles = cross_valid(9)
+    # print resultfiles
 
 
 
