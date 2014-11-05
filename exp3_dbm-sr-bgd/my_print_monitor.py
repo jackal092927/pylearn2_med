@@ -6,8 +6,7 @@ from pylearn2.utils import serial
 import numpy as np
 import gc
 
-def my_monitor(models=None, n=10):
-    model_str = "mlp3-1700-1700-on-feature850-2-{}.pkl"
+def my_monitor(models=None, n=10, model_str="mlp3-1700-1700-on-feature850-2-{}.pkl"):
     if models is None:
         models = []
         for i in range(1,n):
@@ -41,7 +40,11 @@ def my_monitor(models=None, n=10):
         print key, ':', channels[key].val_record[-1]
 
 if __name__ == '__main__':
-    errors = my_monitor(models=None, n=int(sys.argv[1]))
+    errors = my_monitor(
+        models=None,
+        model_str=sys.argv[1],
+        n=int(sys.argv[2])
+    )
     print errors
     print np.mean(errors)
     print np.std(errors)
