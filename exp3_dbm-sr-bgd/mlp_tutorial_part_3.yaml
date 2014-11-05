@@ -2,6 +2,7 @@
     dataset: &train !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
         {
             which_set: 'train',
+            datapath: %(data_path)s
         },
 
     model: !obj:pylearn2.models.mlp.MLP {
@@ -33,10 +34,12 @@
                 'valid' : !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
                 {
                     which_set: 'valid',
+                    datapath: %(data_path)s
                 },
                 'test' : !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
                 {
                     which_set: 'test',
+                    datapath: %(data_path)s
                 },
             },
         termination_criterion: !obj:pylearn2.termination_criteria.And {

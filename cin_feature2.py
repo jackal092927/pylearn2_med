@@ -19,6 +19,8 @@ class CIN_FEATURE2(DenseDesignMatrix):
         #datapath = path + 'feature850-2-1.pkl'
         if datapath is None:
             datapath = path + 'feature1406-2-1.pkl'
+        else:
+            datapath = path + datapath
         datapath = serial.preprocess(datapath)
         with  open(datapath, 'rb') as f:
             #f = open(datapath, 'rb')
