@@ -64,8 +64,7 @@ class CIN_FEATURE2(DenseDesignMatrix):
         topo_view = X.reshape(X.shape[0], X.shape[1], 1, 1)
         # y = np.reshape(Y, (Y.shape[0], 1))
         y = np.atleast_2d(Y).T
-        # print X.shape, y.shape
-        # print y.shape
+        print X.shape, y.shape
         # y = np.zeros((Y.shape[0], 2))
         # y[:, 0] = Y
         # y[:, 0] = 1 - Y
