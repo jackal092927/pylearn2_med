@@ -19,7 +19,7 @@
                      irange: 0.
                  }
                 ],
-        nvis: 850,
+        nvis: %(nvis)i,
     },
 
     algorithm: !obj:pylearn2.training_algorithms.bgd.BGD

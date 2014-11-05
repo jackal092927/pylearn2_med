@@ -9,7 +9,7 @@ from pylearn2.utils import serial
 class CIN_FEATURE2(DenseDesignMatrix):
     def __init__(self,
                  which_set,
-                 datapath=None,
+                 data_path=None,
                  center=True,
                  rescale=True,
                  gcn=True):
@@ -17,12 +17,12 @@ class CIN_FEATURE2(DenseDesignMatrix):
         # load data
         path = "${PYLEARN2_DATA_PATH}/cin/"
         #datapath = path + 'feature850-2-1.pkl'
-        if datapath is None:
-            datapath = path + 'feature1406-2-1.pkl'
+        if data_path is None:
+            data_path = path + 'feature1406-2-1.pkl'
         else:
-            datapath = path + datapath
-        datapath = serial.preprocess(datapath)
-        with  open(datapath, 'rb') as f:
+            data_path = path + data_path
+        data_path = serial.preprocess(data_path)
+        with  open(data_path, 'rb') as f:
             #f = open(datapath, 'rb')
             train_set, valid_set, test_set = cPickle.load(f)
             #f.close()
@@ -74,8 +74,8 @@ class CIN_FEATURE2(DenseDesignMatrix):
         super(CIN_FEATURE2, self).__init__(topo_view=topo_view, y=y, y_labels=2)
 
 
-
-CIN_FEATURE2("train")
+if __name__ == '__main__':
+    CIN_FEATURE2("train")
 
 
 
