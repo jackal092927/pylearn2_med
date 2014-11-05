@@ -45,7 +45,7 @@ def train_mlp3(data_path,
 
     train_2 = yaml_parse.load(train_2)
     print "save to {}".format(save_path)
-    #train_2.main_loop()
+    train_2.main_loop()
     return save_path
 
 
@@ -103,9 +103,9 @@ def cross_valid(times, dim_h):
     for i in range(times):
         data_path = datapath.format(str(i+1))
         #save_path = savepath.format(dim_h, dim_h, data_path)
-        print data_path
+        #print data_path
         #result.append(save_path)
-        result.append(train_mlp3(data_path=data_path, dim_h=dim_h))
+        result.append(train_mlp4(data_path=data_path, dim_h=dim_h))
     return result
 
 
