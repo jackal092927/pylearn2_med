@@ -72,7 +72,7 @@ def train_mlp4(data_path,
 
     train_2 = yaml_parse.load(train_2)
     print "save to {}".format(save_path)
-    # train_2.main_loop()
+    train_2.main_loop()
     return save_path
 
 def train_mymlp0(
