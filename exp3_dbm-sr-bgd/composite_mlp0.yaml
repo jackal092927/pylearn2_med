@@ -1,8 +1,7 @@
 !obj:pylearn2.train.Train {
-    dataset: &train !obj:pylearn2.scripts.med_ml.cin_feature2_split.CIN_FEATURE2
+    dataset: &train !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
         {
             which_set: 'train',
-            data_path: %(data_path)s
         },
 
     model: !obj:pylearn2.models.mlp.MLP {
@@ -13,7 +12,7 @@
                  }, !obj:pylearn2.models.mlp.RectifiedLinear {
                      layer_name: 'h1',
                      dim: %(dim_h1)i,
-                     sparse_init: 15
+                     sparse_init: %(sparse_init_h1)i
                  }, !obj:pylearn2.models.mlp.Softmax {
                      layer_name: 'y',
                      n_classes: 2,
@@ -31,11 +30,11 @@
         monitoring_dataset:
             {
                 'train' : *train,
-                'valid' : !obj:pylearn2.scripts.med_ml.cin_feature2_split.CIN_FEATURE2
+                'valid' : !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
                 {
                     which_set: 'valid',
                 },
-                'test' : !obj:pylearn2.scripts.med_ml.cin_feature2_split.CIN_FEATURE2
+                'test' : !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
                 {
                     which_set: 'test',
                 },
@@ -55,7 +54,7 @@
     },
     extensions: [ !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest {
              channel_name: 'test_y_misclass',
-             save_path: "%(save_path)s"
+             save_path: "%(save_path)s/mlp2-bgd_best.pkl"
         },
     ]
 }

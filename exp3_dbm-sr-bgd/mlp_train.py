@@ -5,20 +5,32 @@ from pylearn2.config import yaml_parse
 MAX_EPOCHS = 2000
 
 
-def train_mlp2():
-    path = "mlp_tutorial_part_2.yaml"
+def train_mlp2(data_path,
+               dim_v=1406,
+               dim_h=1700):
+    save_path = "mlp2-{}-{}-on-" + data_path
+    save_path = save_path.format(dim_h, dim_h)
+    dim_h1 = dim_h0 = dim_h
+    # save_path.format(dim_h0, dim_h1)
 
+    path = "mlp_tutorial_part_2.yaml"
     with open(path, 'r') as f:
         train_2 = f.read()
-    hyper_params = {'dim_h0': 1500,
-                    'dim_h1': 1500,
-                    'sparse_init_h1': 15,
+
+    hyper_params = {'data_path': data_path,
+                    'nvis': dim_v,
+                    'dim_h0': dim_h0,
+                    'dim_h1': dim_h1,
+                    #'sparse_init_h1': 15,
                     'max_epochs': MAX_EPOCHS,
-                    'save_path': '.'}
+                    'save_path': save_path}
     train_2 = train_2 % (hyper_params)
+    # print train_2
 
     train_2 = yaml_parse.load(train_2)
+    print "save to {}".format(save_path)
     train_2.main_loop()
+    return save_path
 
 
 def train_mlp3(data_path,
@@ -113,21 +125,14 @@ def cross_valid(times, dim_h):
 
 
 if __name__ == '__main__':
-    datapath = "feature850-2-{}.pkl".format(str(1))
-    dim_h = 1700
-    cross_n = 9
-    # savepath = "./mlp4_1700.1700-on-{}".format(datapath)
-    # savepath = "./mlp-pretain0.pkl"
-    results = []
-    # results.append(train_mlp3(datapath))
-    # results.append(train_mlp4(datapath))
-    results += cross_valid(cross_n, dim_h)
+    # datapath = "feature850-2-{}.pkl".format(str(1))
+    # dim_h = 1700
+    # cross_n = 9
+    # results = []
+    # results += cross_valid(cross_n, dim_h)
 
-    # train_mymlp0(datapath)
-    #train_mlp4(datapath, savepath)
-    # resultfiles = cross_valid(9)
-    # print resultfiles
-
+    data_path = "feature1406-2-1.pkl"
+    train_mlp3(data_path=data_path)
 
 
 

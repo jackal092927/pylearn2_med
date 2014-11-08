@@ -1,15 +1,12 @@
 __author__ = 'Jackal'
 
-from pylearn2.costs.cost import SumOfCosts
-
-from cin_feature2 import CIN_FEATURE2
+from cin_feature2_split import CIN_FEATURE2
 
 
 MAX_EPOCHS_UNSUPERVISED = 1
 MAX_EPOCHS_SUPERVISED = 2
 
-from pylearn2.config import yaml_parse
-from pylearn2.corruption import BinomialCorruptor, DropoutCorruptor
+from pylearn2.corruption import BinomialCorruptor
 from pylearn2.corruption import GaussianCorruptor
 from pylearn2.costs.mlp import Default
 from pylearn2.models.autoencoder import Autoencoder, DenoisingAutoencoder
@@ -18,14 +15,11 @@ from pylearn2.models.softmax_regression import SoftmaxRegression
 from pylearn2.training_algorithms.sgd import SGD
 from pylearn2.costs.autoencoder import MeanSquaredReconstructionError
 from pylearn2.termination_criteria import EpochCounter, MonitorBased
-from pylearn2.datasets.dense_design_matrix import DenseDesignMatrix
 from pylearn2.energy_functions.rbm_energy import GRBM_Type_1
-from pylearn2.blocks import StackedBlocks
 from pylearn2.datasets.transformer_dataset import TransformerDataset
 from pylearn2.costs.ebm_estimation import SMD, CDk
 from pylearn2.training_algorithms.sgd import MonitorBasedLRAdjuster
 from pylearn2.train import Train
-from optparse import OptionParser
 
 
 def get_dataset_cin():

@@ -1,10 +1,16 @@
-from pylearn2.expr.preprocessing import global_contrast_normalize
-
 __author__ = 'Jackal'
 import numpy as np
 import cPickle
 from pylearn2.datasets.dense_design_matrix import DenseDesignMatrix
-from pylearn2.utils import serial
+from pylearn2.utils import serial, safe_zip
+from pylearn2.utils.iteration import resolve_iterator_class
+from pylearn2.expr.preprocessing import global_contrast_normalize
+from pylearn2.space import CompositeSpace, VectorSpace
+from utils.iteration import FiniteDatasetIterator
+
+import functools
+from pylearn2.datasets import Dataset
+
 
 class CIN_FEATURE2(DenseDesignMatrix):
     def __init__(self,
@@ -37,7 +43,7 @@ class CIN_FEATURE2(DenseDesignMatrix):
         else:
             X, Y = self.test_set
 
-
+        X.astype(float)
         axis = 0
         _max = np.max(X, axis=axis)
         _min = np.min(X, axis=axis)
@@ -59,18 +65,15 @@ class CIN_FEATURE2(DenseDesignMatrix):
             if rescale:
                 X[:, ] /= _scale
 
-
-        X.astype(float)
-        topo_view = X.reshape(X.shape[0], X.shape[1], 1, 1)
+        # topo_view = X.reshape(X.shape[0], X.shape[1], 1, 1)
         # y = np.reshape(Y, (Y.shape[0], 1))
-        y = np.atleast_2d(Y).T
+        # y = np.atleast_2d(Y).T
+        y = np.zeros((Y.shape[0], 2))
+        y[:, 0] = Y
+        y[:, 0] = 1 - Y
         print X.shape, y.shape
-        # y = np.zeros((Y.shape[0], 2))
-        # y[:, 0] = Y
-        # y[:, 0] = 1 - Y
-        # super(CIN_FEATURE2, self).__init__(X=X, y=y)
-        super(CIN_FEATURE2, self).__init__(topo_view=topo_view, y=y, y_labels=2)
-
+        super(CIN_FEATURE2, self).__init__(X=X, y=y)
+        # super(CIN_FEATURE2, self).__init__(topo_view=topo_view, y=y, y_labels=2)
 
 if __name__ == '__main__':
     CIN_FEATURE2("train")
