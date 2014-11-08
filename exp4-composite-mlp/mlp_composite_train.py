@@ -9,7 +9,7 @@ __author__ = 'Jackal'
 
 from pylearn2.config import yaml_parse
 from pylearn2.space import VectorSpace
-from cin_feature2_composite import CIN_FEATURE2
+from datasets.cin_feature2_composite import CIN_FEATURE2
 from mlp_with_source import MLPWithSource, CompositeLayerWithSource
 
 MAX_EPOCHS = 2000

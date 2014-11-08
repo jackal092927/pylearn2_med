@@ -1,6 +1,6 @@
 __author__ = 'Jackal'
 
-from cin_feature2_split import CIN_FEATURE2
+from datasets.cin_feature2_split import CIN_FEATURE2
 
 
 MAX_EPOCHS_UNSUPERVISED = 15
