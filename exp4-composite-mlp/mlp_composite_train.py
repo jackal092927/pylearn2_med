@@ -4,7 +4,6 @@ from pylearn2.space import CompositeSpace
 from pylearn2.termination_criteria import EpochCounter
 from pylearn2.train import Train
 from pylearn2.training_algorithms.bgd import BGD
-from pylearn2.training_algorithms.sgd import SGD
 
 __author__ = 'Jackal'
 
