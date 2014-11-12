@@ -1,5 +1,7 @@
 __author__ = 'Jackal'
 
+import sys
+sys.path.append('..')
 from pylearn2.config import yaml_parse
 from pylearn2.space import VectorSpace
 from datasets.cin_feature2_composite import CIN_FEATURE2
@@ -10,7 +12,8 @@ from pylearn2.space import CompositeSpace
 from pylearn2.termination_criteria import EpochCounter
 from pylearn2.train import Train
 from pylearn2.training_algorithms.bgd import BGD
-import sys
+
+
 
 MAX_EPOCHS = 2000
 
@@ -117,10 +120,11 @@ def cross_valid(n_fold, dim_h, datapath):
         result.append(train_mlp_with_source(data_path=data_path, dim_h=dim_h))
     return result
 
-if __name__ == '__main__':
+
+def main():
     # errors = my_monitor(
     # models=None,
-    #     model_str=sys.argv[1],
+    # model_str=sys.argv[1],
     #     n=int(sys.argv[2])
     # )
 
@@ -137,3 +141,7 @@ if __name__ == '__main__':
     # dim_h = [1700, 1200]
     # cross_valid(n_fold=n_fold, dim_h=dim_h, datapath=data_path)
     train_mlpws_1(sys.argv[1])
+
+if __name__ == '__main__':
+    main()
+
