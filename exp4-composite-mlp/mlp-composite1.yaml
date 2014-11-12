@@ -1,8 +1,8 @@
 !obj:pylearn2.train.Train {
-    dataset: &train !obj:datasets.cin_feature2_composite.CIN_FEATURE2
+    dataset: &train !obj:datasets.cin_feature2_composite.CIN_FEATURE2086_2
         {
             which_set: 'train',
-            data_path: %(data_path)s
+            foldi: %(foldi)i
         },
     model: !obj:mlp_with_source.MLPWithSource {
             batch_size: 1140,
@@ -20,6 +20,12 @@
                         {
                              layer_name: '556',
                              dim: %(dim_h0_556)i,
+                             sparse_init: 15
+                        },
+                        !obj:pylearn2.models.mlp.RectifiedLinear
+                        {
+                             layer_name: '680',
+                             dim: %(dim_h0_680)i,
                              sparse_init: 15
                         },
                     ],
@@ -40,6 +46,12 @@
                              dim: %(dim_h0_556)i,
                              sparse_init: 15
                         },
+                        !obj:pylearn2.models.mlp.RectifiedLinear
+                        {
+                             layer_name: '680',
+                             dim: %(dim_h0_680)i,
+                             sparse_init: 15
+                        },
                     ],
                 },
                 !obj:softmax_composite_input.Softmax_composite_input {
@@ -56,9 +68,12 @@
                     !obj:pylearn2.space.VectorSpace {
                         dim: 556,
                     },
+                    !obj:pylearn2.space.VectorSpace {
+                        dim: 680,
+                    },
                 ],
             },
-            input_source: ['feature850', 'feature556'],
+            input_source: ['feature850', 'feature556', 'feature680'],
         },
 
     algorithm: !obj:pylearn2.training_algorithms.bgd.BGD
@@ -68,13 +83,15 @@
         monitoring_dataset:
             {
                 'train' : *train,
-                'valid' : !obj:datasets.cin_feature2_composite.CIN_FEATURE2
+                'valid' : !obj:datasets.cin_feature2_composite.CIN_FEATURE2086_2
                 {
                     which_set: 'valid',
+                    foldi: %(foldi)i
                 },
-                'test'  : !obj:datasets.cin_feature2_composite.CIN_FEATURE2
+                'test'  : !obj:datasets.cin_feature2_composite.CIN_FEATURE2086_2
                 {
                     which_set: 'test',
+                    foldi: %(foldi)i
                 },
             },
         cost: !obj:pylearn2.costs.cost.SumOfCosts

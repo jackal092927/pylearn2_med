@@ -1,0 +1,41 @@
+!obj:pylearn2.train.Train
+{
+    dataset: &train !obj:pylearn2.scripts.med_ml.datasets.cin_feature2_composite.CIN_FEATURE2
+    {
+        which_set: 'train',
+        specs: 0,
+    },
+
+    model: !obj:pylearn2.models.svm.DenseMulticlassSVM
+    {
+        C: 1.0,
+    },
+
+    algorithm: !obj:pylearn2.training_algorithms.bgd.BGD
+    {
+        line_search_mode: 'exhaustive',
+        conjugate: 1,
+        monitoring_dataset:
+        {
+            'train' : *train,
+            'valid' : !obj:pylearn2.scripts.med_ml.datasets.cin_feature2_composite.CIN_FEATURE2
+            {
+                which_set: 'valid',
+            }
+        },
+        termination_criterion: !obj:pylearn2.termination_criteria.MonitorBased
+        {
+            channel_name: "valid_y_misclass"
+        }
+    },
+    extensions:
+    [
+        !obj:pylearn2.train_extensions.best_params.MonitorBasedSaveBest
+        {
+             channel_name: 'valid_y_misclass',
+             save_path: "svm_best.pkl",
+        },
+    ],
+    save_path: "svm.pkl",
+    save_freq: 1
+}

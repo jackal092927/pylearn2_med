@@ -45,6 +45,7 @@ class CIN_FEATURE2(DenseDesignMatrix):
         else:
             X, Y = self.test_set
 
+
         X.astype(float)
         axis = 0
         _max = np.max(X, axis=axis)
@@ -52,29 +53,6 @@ class CIN_FEATURE2(DenseDesignMatrix):
         _mean = np.mean(X, axis=axis)
         _std = np.std(X, axis=axis)
         _scale = _max - _min
-
-        # def features_map_fn(indexes):
-        #     rval = []
-        #     for sequence_index, example_index in self._fetch_index(indexes):
-        #         rval.append(self.samples_sequences[sequence_index][example_index:example_index
-        #                                                                          + self.frames_per_example].ravel())
-        #     return rval
-        #
-        # def targets_map_fn(indexes):
-        #     rval = []
-        #     for sequence_index, example_index in self._fetch_index(indexes):
-        #         rval.append(self.samples_sequences[sequence_index][example_index
-        #                                                            + self.frames_per_example].ravel())
-        #     return rval
-
-        # map_fn_components = [features_map_fn, targets_map_fn]
-        # self.map_functions = tuple(map_fn_components)
-        # self.cumulative_example_indexes = X.shape[0]
-
-        # print _max
-        # print _min
-        # print _mean
-        # print _std
 
         if gcn:
             X = global_contrast_normalize(X, scale=gcn)
@@ -84,13 +62,16 @@ class CIN_FEATURE2(DenseDesignMatrix):
             if rescale:
                 X[:, ] /= _scale
 
+
         # topo_view = X.reshape(X.shape[0], X.shape[1], 1, 1)
         # y = np.reshape(Y, (Y.shape[0], 1))
         # y = np.atleast_2d(Y).T
+        self.raw_X = X
+        self.raw_y = Y
         y = np.zeros((Y.shape[0], 2))
         y[:, 0] = Y
         y[:, 1] = 1 - Y
-        print X.shape, y.shape
+        # print "Load CIN_FEATURE2 data: {}, with size X:{}, y:{}".format(data_path, X.shape, y.shape)
         super(CIN_FEATURE2, self).__init__(X=X, y=y)
         # super(CIN_FEATURE2, self).__init__(topo_view=topo_view, y=y, y_labels=2)
 
@@ -100,29 +81,6 @@ class CIN_FEATURE2(DenseDesignMatrix):
             self.feature850 = X[:, 0:850]
             self.feature556 = X[:, 850:]
             self.y = y
-
-
-    # def _fetch_index(self, indexes):
-    #     digit = np.digitize(indexes, self.cumulative_example_indexes) - 1
-    #     return zip(digit,
-    #                np.array(indexes) - self.cumulative_example_indexes[digit])
-    #
-    # def _validate_source(self, source):
-    #     """
-    #     Verify that all sources in the source tuple are provided by the
-    #     dataset. Raise an error if some requested source is not available.
-    #
-    #     Parameters
-    #     ----------
-    #     source : `tuple` of `str`
-    #         Requested sources
-    #     """
-    #     for s in source:
-    #         try:
-    #             self.data_specs[1].index(s)
-    #         except ValueError:
-    #             raise ValueError("the requested source named '" + s + "' " +
-    #                              "is not provided by the dataset")
 
     def init_data_specs(self):
 
@@ -156,27 +114,6 @@ class CIN_FEATURE2(DenseDesignMatrix):
         """
         return self.data_specs
 
-    # def get(self, source, indexes):
-    #     """
-    #     .. todo::
-    #
-    #         WRITEME
-    #     """
-    #     if type(indexes) is slice:  # eg: [3:5]
-    #         indexes = np.arange(indexes.start, indexes.stop)
-    #     self._validate_source(source)
-    #     rval = []
-    #     for so in source:
-    #         batch = self.map_functions[self.data_specs[1].index(so)](indexes)
-    #         batch_buffer = self.batch_buffers[self.data_specs[1].index(so)]
-    #         dim = self.data_specs[0].components[self.data_specs[1].index(so)].dim
-    #         if batch_buffer is None or batch_buffer.shape != (len(batch), dim):
-    #             batch_buffer = np.zeros((len(batch), dim),
-    #                                        dtype=batch[0].dtype)
-    #         for i, example in enumerate(batch):
-    #             batch_buffer[i] = example
-    #         rval.append(batch_buffer)
-    #     return tuple(rval)
 
     def get_data(self):
 
@@ -185,57 +122,179 @@ class CIN_FEATURE2(DenseDesignMatrix):
         else:
             return (self.X, self.y)
 
-    # @functools.wraps(Dataset.iterator)
-    # def iterator(self, mode=None, batch_size=None, num_batches=None,
-    #              rng=None, data_specs=None, return_tuple=False):
-    #     """
-    #     .. todo::
-    #
-    #         WRITEME
-    #     """
-    #     if data_specs is None:
-    #         data_specs = self._iter_data_specs
-    #
-    #     # If there is a view_converter, we have to use it to convert
-    #     # the stored data for "features" into one that the iterator
-    #     # can return.
-    #     space, source = data_specs
-    #     if isinstance(space, CompositeSpace):
-    #         sub_spaces = space.components
-    #         sub_sources = source
-    #     else:
-    #         sub_spaces = (space,)
-    #         sub_sources = (source,)
-    #
-    #     convert = []
-    #     for sp, src in safe_zip(sub_spaces, sub_sources):
-    #         convert.append(None)
-    #
-    #     # TODO: Refactor
-    #     if mode is None:
-    #         if hasattr(self, '_iter_subset_class'):
-    #             mode = self._iter_subset_class
-    #         else:
-    #             raise ValueError('iteration mode not provided and no default '
-    #                              'mode set for %s' % str(self))
-    #     else:
-    #         mode = resolve_iterator_class(mode)
-    #
-    #     if batch_size is None:
-    #         batch_size = getattr(self, '_iter_batch_size', None)
-    #     if num_batches is None:
-    #         num_batches = getattr(self, '_iter_num_batches', None)
-    #     if rng is None and mode.stochastic:
-    #         rng = self.rng
-    #     return FiniteDatasetIterator(self,
-    #                                  mode(self.num_examples, batch_size,
-    #                                       num_batches, rng),
-    #                                  data_specs=data_specs,
-    #                                  return_tuple=return_tuple,
-    #                                  convert=convert)
+
+    def get_raw_data(self):
+        return self.raw_X, self.raw_y
+
+
+class CIN_FEATURE2086_2(DenseDesignMatrix):
+    dirpath = "${PYLEARN2_DATA_PATH}/cin/"
+    filestr = "feature2086-2-{}.pkl"
+
+    def __init__(self,
+                 which_set,
+                 data_path=None,
+                 center=True,
+                 rescale=True,
+                 gcn=True,
+                 specs=True,
+                 foldi=1,
+                 foldn=10):
+        self.class_name = ['neg', 'pos']
+        # load data
+        self.specs = specs
+
+        if which_set == 'valid':
+            i = (foldi) % foldn
+            filepath = self.filestr.format(str(i+1))
+            filepath = self.dirpath + filepath
+            filepath = serial.preprocess(filepath)
+            X, Y = self.loadi(filepath)
+        elif which_set == 'test':
+            i = (foldi - 1) % foldn
+            filepath = self.filestr.format(str(i+1))
+            filepath = self.dirpath + filepath
+            filepath = serial.preprocess(filepath)
+            X, Y = self.loadi(filepath)
+        else:
+            indexs = range(foldn)
+            i = foldi % foldn
+            indexs.pop(i)
+            if i == 0:
+                indexs.pop(-1)
+            else:
+                i = (foldi-1) % foldn
+                indexs.pop(i)
+            Xs = []
+            Ys = []
+            for i in indexs:
+                filepath = self.filestr.format(str(i+1))
+                filepath = self.dirpath + filepath
+                filepath = serial.preprocess(filepath)
+                X, Y = self.loadi(filepath)
+                Xs.append(X)
+                Ys.append(Y)
+            X = np.vstack(Xs)
+            Y = np.hstack(Ys)
+
+        print X.shape, Y.shape
+        # col0s = np.where(Y == 0)[0]
+        # print len(col0s)
+
+        X.astype(float)
+        axis = 0
+        _max = np.max(X, axis=axis)
+        _min = np.min(X, axis=axis)
+        _mean = np.mean(X, axis=axis)
+        _std = np.std(X, axis=axis)
+        _scale = _max - _min
+
+        if gcn:
+            X = global_contrast_normalize(X, scale=gcn)
+        else:
+            if center:
+                X[:, ] -= _mean
+            if rescale:
+                X[:, ] /= _scale
+
+
+        # topo_view = X.reshape(X.shape[0], X.shape[1], 1, 1)
+        # y = np.reshape(Y, (Y.shape[0], 1))
+        # y = np.atleast_2d(Y).T
+        self.raw_X = X
+        self.raw_y = Y
+        y = np.zeros((Y.shape[0], 2))
+        y[:, 0] = Y
+        y[:, 1] = 1 - Y
+        print "Load CIN_FEATURE2086_2 data: {}, with size X:{}, y:{}".format(data_path, X.shape, y.shape)
+        super(CIN_FEATURE2086_2, self).__init__(X=X, y=y)
+        # super(CIN_FEATURE2, self).__init__(topo_view=topo_view, y=y, y_labels=2)
+
+        if specs:
+            assert X.shape[1] == (850 + 556 + 680)
+            self.init_data_specs()
+            self.feature850 = X[:, 0:850]
+            self.feature556 = X[:, 850:850 + 556]
+            self.feature680 = X[:, 850 + 556:]
+            self.y = y
+
+    def loadall(self,
+                dirpath="${PYLEARN2_DATA_PATH}/cin/",
+                filestr="feature2086-2-{}.pkl",
+                n=10):
+        datasets = []
+        for i in range(n):
+            filename = filestr.format(str(i + 1))
+            filename = dirpath + filename
+            filename = serial.preprocess(filename)
+            print "load data file: " + filename
+            self.loadi(i, filename=filename )
+
+        dataset = datasets[0]
+        X, y = datasetXy
+        print X.shape, y.shape
+
+        return datasets
+
+    def loadi(self,
+              filename):
+        with open(filename, 'rb') as f:
+            print "load file: " + filename
+            datasetXy = cPickle.load(f)
+        return datasetXy
+
+    def init_data_specs(self):
+
+        self.data_specs = \
+            (
+                CompositeSpace
+                (
+                    [
+                        # CompositeSpace([VectorSpace(dim=850),VectorSpace(dim=556)]),
+                        VectorSpace(dim=850),
+                        VectorSpace(dim=556),
+                        VectorSpace(dim=680),
+                        VectorSpace(dim=2)
+                    ]
+                ),
+                (
+                    'feature850', 'feature556', 'feature680', 'targets'
+                )
+            )
+
+    def get_data_specs(self):
+        """
+        Returns the data_specs specifying how the data is internally stored.
+
+        This is the format the data returned by `self.get_data()` will be.
+
+        .. note::
+
+            Once again, this is very hacky, as the data is not stored that way
+            internally. However, the data that's returned by `TIMIT.get()`
+            _does_ respect those data specs.
+        """
+        return self.data_specs
+
+
+    def get_data(self):
+
+        if self.specs:
+            return (self.feature850, self.feature556, self.feature680, self.y)
+        else:
+            return (self.X, self.y)
+
+
+    def get_raw_data(self):
+        return self.raw_X, self.raw_y
+
 
 if __name__ == '__main__':
-    CIN_FEATURE2("train")
+    # CIN_FEATURE2("train")
+    CIN_FEATURE2086_2("train")
+
+
+
 
 
 
