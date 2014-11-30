@@ -25,7 +25,7 @@ from theano.ifelse import ifelse
 
 
 
-y_hat = T.dvector('y_hat')
+y_hat = T.dmatrix(name='y_hat')
 y = T.dvector('y')
 # results = []
 # for i in [0, 1, 10, 11]:
@@ -60,11 +60,17 @@ arr2 = np.array([0, 1, 1, 0, 1, 1, 0, 1, 1])
 
 
 def get_sensi_speci(y_hat, y):
+    # y_hat = T.concatenate(T.sum(input=y_hat[:, 0:2], axis=1), T.sum(input=y_hat[:, 2:], axis=1))
+    y_hat = T.stacklists([y_hat[:, 0] + y_hat[:, 1], y_hat[:, 2] + y_hat[:, 3] + y_hat[:, 4]]).T
+    y_hat = T.argmax(y_hat)
+
     tag = 10 * y_hat + y
     tneg = T.cast((T.shape(tag[(T.eq(tag, 0.)).nonzero()]))[0], config.floatX)
     fneg = T.cast((T.shape(tag[(T.eq(tag, 1.)).nonzero()]))[0], config.floatX)
     fpos = T.cast((T.shape(tag[(T.eq(tag, 10.)).nonzero()]))[0], config.floatX)
     tpos = T.cast((T.shape(tag[(T.eq(tag, 11.)).nonzero()]))[0], config.floatX)
+
+
 
     # assert fneg + fneg + fpos + tpos == 1380
     # tneg.astype(config.floatX)
@@ -90,23 +96,53 @@ def get_sensi_speci(y_hat, y):
     return [sensi, speci]
 
 
-# y_hat2, y2 = convert2class(y_hat, y)
-# misclass2 = T.neq(y2, y_hat2).mean()
-# misclass2 = T.cast(misclass2, config.floatX)
-# test = T.mean(T.neq(y, y_hat))
-# f = function(inputs=[y_hat, y], outputs=misclass2)
-# print f(arr1, arr2)
+def convert2class(self, y_hat, y):
+    # y_hat = T.set_subtensor(y_hat[(y_hat < 1).nonzero()], 0)
+    # y_hat = T.set_subtensor(y_hat[(y_hat >= 1).nonzero()], 1)
+    # y_hat = T.stacklists([y_hat[:, 0] + y_hat[:, 1], y_hat[:, 2] + y_hat[:, 3] + y_hat[:, 4]])
+    y_hat = T.stacklists([T.sum(y_hat[:, 0:2], axis=1), T.sum(y_hat[:, 2:], axis=1)]).T
+    y_hat = T.argmax(y_hat, axis=1)
+    # y_hat = T.set_subtensor(y_hat[(y_hat < 2).nonzero()], 0)
+    # y_hat = T.set_subtensor(y_hat[(y_hat >= 2).nonzero()], 1)
+    y = T.set_subtensor(y[(y < 2).nonzero()], 0)
+    y = T.set_subtensor(y[(y >= 2).nonzero()], 1)
 
-tag = 10 * y_hat + y
-tneg = T.cast(T.max(T.shape(tag[(T.eq(tag, 0.)).nonzero()])), config.floatX)
-fneg = T.cast(T.max(T.shape(tag[(T.eq(tag, 1.)).nonzero()])), config.floatX)
-fpos = T.cast(T.max(T.shape(tag[(T.eq(tag, 10.)).nonzero()])), config.floatX)
-tpos = T.cast(T.max(T.shape(tag[(T.eq(tag, 11.)).nonzero()])), config.floatX)
-sensi = tneg / (tneg + fpos)
-f = function(inputs=[y_hat, y], outputs=sensi)
-print f(arr1, arr2)
-g = function(inputs=[y_hat, y], outputs=get_sensi_speci(y_hat, y))
+    return [y_hat, y]
+
+if __name__ == '__main__':
+    # y_hat2, y2 = convert2class(y_hat, y)
+    # misclass2 = T.neq(y2, y_hat2).mean()
+    # misclass2 = T.cast(misclass2, config.floatX)
+    # test = T.mean(T.neq(y, y_hat))
+    # f = function(inputs=[y_hat, y], outputs=misclass2)
+    # print f(arr1, arr2)
+    arr = np.array([[1, 2, 3, 4, 5], [5, 4, 3, 2, 1], [5, 4, 3, 2, 1]])
+    print arr
+    print arr.shape
+
+    my_sum = T.stacklists([T.sum(y_hat[:, 0:2], axis=1), T.sum(y_hat[:, 2:], axis=1)]).T
+    my_max = T.argmax(my_sum, axis=1)
+    # test = T.transpose(T.sum(y_hat[:, 0:2], axis=1))
+    # my_sum = T.sum(y_hat, axis=1)
+    # my_sum = T.concatenate([T.sum(input=y_hat[:, 0:2], axis=1), T.sum(input=y_hat[:, 2:])])
+    # y_hat = T.argmax(y_hat)
+    # tag = 10 * y_hat + y
+    # tneg = T.cast(T.max(T.shape(tag[(T.eq(tag, 0.)).nonzero()])), config.floatX)
+    # fneg = T.cast(T.max(T.shape(tag[(T.eq(tag, 1.)).nonzero()])), config.floatX)
+    # fpos = T.cast(T.max(T.shape(tag[(T.eq(tag, 10.)).nonzero()])), config.floatX)
+    # tpos = T.cast(T.max(T.shape(tag[(T.eq(tag, 11.)).nonzero()])), config.floatX)
+    # sensi = tneg / (tneg + fpos)
+    f = function(inputs=[y_hat], outputs=my_sum)
+    h = function(inputs=[y_hat], outputs=my_max)
+
+    np.atleast_2d(arr)
+    print f(arr)
+    print h(arr)
+
+    # f = function(inputs=[y_hat, y], outputs=sensi)
+    # print f(arr1, arr2)
+    # g = function(inputs=[y_hat, y], outputs=get_sensi_speci(y_hat, y))
+    # print g(arr1, arr2)
 
 
-print g(arr1, arr2)
 

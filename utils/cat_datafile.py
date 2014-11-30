@@ -11,10 +11,8 @@ import os
 
 def cat_pkl(
         datafile):
-    f = open(datafile, 'rb')
-    # train_set, valid_set, test_set = cPickle.load(f)
-    set_list = cPickle.load(f)
-    f.close()
+    with open(datafile, 'rb') as f:
+        set_list = cPickle.load(f)
 
     print set_list.nvis
     #

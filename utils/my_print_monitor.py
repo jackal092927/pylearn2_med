@@ -1,4 +1,6 @@
 #!/usr/bin/env python
+from cin_feature2 import CIN_FEATURE2
+
 __author__ = 'Jackal'
 
 import sys
@@ -45,12 +47,30 @@ def my_show_weights(model_path, rescale='individual', border=False, out=None):
                                                rescale=rescale,
                                                border=border)
 
+
     if out is None:
         pv.show()
     else:
         pv.save(out)
 
 
+def get_dataset_cin():
+    """
+    The toy dataset is only meant to used for testing pipelines.
+    Do not try to visualize weights on it. It is not picture and
+    has no color channel info to support visualization
+    """
+    trainset = CIN_FEATURE2('train')
+    testset = CIN_FEATURE2('test')
+
+    return trainset, testset
+
+
+def get_model_output(model_path):
+    model = serial.load(model_path)
+    train_set, test_set = get_dataset_cin()
+    X, y = train_set
+    output = model.perform(X)
 
 if __name__ == '__main__':
     # errors = my_monitor(
@@ -63,13 +83,13 @@ if __name__ == '__main__':
     # print np.std(errors)
 
     model_path = "mlpws-1700-1200-on-feature1406-2-1.pkl"
-    model_str = "../exp4-composite-mlp/mlpws-1700-1200-wd-on-feature1406-2-{}.pkl-best.pkl"
-    errors = my_monitor(model_str=model_str, n=2)
-    print errors
-    print np.mean(errors)
-    print np.std(errors)
+    # model_str = "../exp4-composite-mlp/mlpws-1700-1200-wd-on-feature1406-2-{}.pkl-best.pkl"
+    # errors = my_monitor(model_str=model_str, n=2)
+    # print errors
+    # print np.mean(errors)
+    # print np.std(errors)
 
-    # my_show_weights(model_path=model_path)
+    get_model_output(model_path=model_path)
 
 
 

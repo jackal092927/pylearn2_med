@@ -60,8 +60,8 @@ def getkv(str):
 
 
 if __name__ == '__main__':
-    # path = '/Users/Jackal/Work/pylearn/pylearn2/pylearn2/scripts/med_ml/result/mlp-composite-on-feature1406-2-[2-5].txt'
-    path = '/Users/Jackal/Work/pylearn/pylearn2/pylearn2/scripts/med_ml/result/mlp-composite-on-feature1406-2-[5-9].txt'
+    # path = '/Users/Jackal/Work/pylearn/pylearn2/pylearn2/scripts/med_ml/results/mlp-composite-on-feature1406-2-[2-5].txt'
+    path = '/Users/Jackal/Work/pylearn/pylearn2/pylearn2/scripts/med_ml/results/mlp-composite-on-feature1406-2-[5-9].txt'
     file_channels = load(path)
     for result in file_channels:
         y1 = result.channel['train_y_misclass']

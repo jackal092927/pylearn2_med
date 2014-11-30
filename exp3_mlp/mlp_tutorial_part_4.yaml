@@ -1,11 +1,14 @@
-!obj:pylearn2.train.Train {
-    dataset: &train !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+!obj:pylearn2.train.Train
+{
+    dataset: &train !obj:datasets.cin_feature2_composite.CIN_FEATURE850_2
         {
             which_set: 'train',
-            data_path: %(data_path)s
+            foldi: %(foldi)d
         },
 
-    model: !obj:pylearn2.models.mlp.MLP {
+    model: !obj:pylearn2.models.mlp.MLP
+    {
+        batch_size: 1140,
         layers: [ !obj:pylearn2.models.mlp.RectifiedLinear {
                      layer_name: 'h0',
                      dim: %(dim_h0)i,
@@ -25,21 +28,20 @@
 
     algorithm: !obj:pylearn2.training_algorithms.bgd.BGD
     {
-        batch_size: 1140,
         line_search_mode: 'exhaustive',
         conjugate: 1,
         monitoring_dataset:
             {
                 'train' : *train,
-                'valid' : !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+                'valid' : !obj:datasets.cin_feature2_composite.CIN_FEATURE850_2
                 {
                     which_set: 'valid',
-                    data_path: %(data_path)s
+                    foldi: %(foldi)d
                 },
-                'test' : !obj:pylearn2.scripts.med_ml.cin_feature2.CIN_FEATURE2
+                'test' : !obj:datasets.cin_feature2_composite.CIN_FEATURE850_2
                 {
                     which_set: 'test',
-                    data_path: %(data_path)s
+                    foldi: %(foldi)d
                 },
             },
         cost: !obj:pylearn2.costs.cost.SumOfCosts

@@ -3,8 +3,8 @@ __author__ = 'Jackal'
 from datasets.cin_feature2_split import CIN_FEATURE2
 
 
-MAX_EPOCHS_UNSUPERVISED = 15
-MAX_EPOCHS_SUPERVISED = 200
+MAX_EPOCHS_UNSUPERVISED = 1
+MAX_EPOCHS_SUPERVISED = 1
 
 from pylearn2.corruption import BinomialCorruptor
 from pylearn2.corruption import GaussianCorruptor
@@ -227,6 +227,8 @@ def main(args=None):
                 TransformerDataset(raw=trainset, transformer=StackedBlocks(layers[0:2]))
                 # , TransformerDataset(raw=trainset, transformer=StackedBlocks(layers[0:3]))
     ]
+    ts = TransformerDataset(raw=trainset, transformer=layers[0])
+
 
     # construct layer trainers
     layer_trainers = []

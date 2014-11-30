@@ -3,6 +3,9 @@ __author__ = 'Jackal'
 from pylearn2.models.mlp import MLP, CompositeLayer
 from pylearn2.space import CompositeSpace
 from theano.compat.python2x import OrderedDict
+from theano import shared
+import numpy as np
+import theano.tensor as T
 
 
 class MLPWithSource(MLP):
@@ -30,6 +33,15 @@ class MLPWithSource(MLP):
     def get_biases(self):
         return self.layers[-1].get_biases()
 
+    def get_final_output(self, dataset):
+        res = []
+        for i, features in enumerate(dataset):
+            tres = shared(features)
+            for layer in self.layers[0:-1]:
+                layer = layer.layers[i]
+                tres = layer.fprop(tres)
+            res.append(tres)
+        return T.concatenate(res, axis=1)
 
 class CompositeLayerWithSource(CompositeLayer):
     def get_input_source(self):

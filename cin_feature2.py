@@ -24,7 +24,7 @@ class CIN_FEATURE2(DenseDesignMatrix):
         path = "${PYLEARN2_DATA_PATH}/cin/"
         #datapath = path + 'feature850-2-1.pkl'
         if data_path is None:
-            data_path = path + 'feature1406-2-1.pkl'
+            data_path = path + 'feature850-2-1.pkl'
         else:
             data_path = path + data_path
         data_path = serial.preprocess(data_path)

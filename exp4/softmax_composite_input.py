@@ -61,32 +61,30 @@ class Softmax_composite_input(Softmax):
                 rval['misclass'] = misclass
                 rval['nll'] = self.cost(Y_hat=state, Y=targets)
 
-                y_hat2, y2 = self.convert2class(y_hat, y)
-                misclass2 = T.neq(y2, y_hat2).mean()
-                misclass2 = T.cast(misclass2, config.floatX)
-                rval['misclass2'] = misclass2
+                # y_hat, y = self.convert2class(state, y)
+                # misclass2 = T.neq(y, y_hat).mean()
+                # misclass2 = T.cast(misclass2, config.floatX)
+                # rval['misclass2'] = misclass2
 
-                sensi, speci = self.get_sensi_speci(y_hat2, y2)
+                sensi, speci = self.get_sensi_speci(y_hat, y)
                 rval['sensi'] = T.cast(sensi, config.floatX)
                 rval['speci'] = T.cast(speci, config.floatX)
 
         return rval
 
     def convert2class(self, y_hat, y):
-        y_hat = T.set_subtensor(y_hat[(y_hat < 1).nonzero()], 0)
-        y_hat = T.set_subtensor(y_hat[(y_hat >= 1).nonzero()], 1)
-        y = T.set_subtensor(y[(y < 1).nonzero()], 0)
-        y = T.set_subtensor(y[(y >= 1).nonzero()], 1)
-        # for i, v in enumerate(y):
-        #     if v <= 1:
-        #         y[i] = 0
-        #     else:
-        #         y[i] = 1
-        #     for i, v in enumerate(y_hat):
-        #         if v <= 1:
-        #             y_hat[i] = 0
-        #         else:
-        #             y_hat[i] = 1
+        # y_hat = T.set_subtensor(y_hat[(y_hat < 1).nonzero()], 0)
+        # y_hat = T.set_subtensor(y_hat[(y_hat >= 1).nonzero()], 1)
+        # y_hat = T.stacklists([y_hat[:, 0] + y_hat[:, 1], y_hat[:, 2] + y_hat[:, 3] + y_hat[:, 4]])
+        y_hat = T.stacklists([T.sum(y_hat[:, 0:2], axis=1), T.sum(y_hat[:, 2:], axis=1)]).T
+        y_hat = T.argmax(y_hat, axis=1)
+        # y_hat = T.set_subtensor(y_hat[(y_hat < 2).nonzero()], 0)
+        # y_hat = T.set_subtensor(y_hat[(y_hat >= 2).nonzero()], 1)
+        y = T.set_subtensor(y[(y < 2).nonzero()], 0)
+        y = T.set_subtensor(y[(y >= 2).nonzero()], 1)
+
+
+
         return [y_hat, y]
 
 

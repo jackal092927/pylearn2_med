@@ -1,8 +1,8 @@
 !obj:pylearn2.train.Train {
-    dataset: &train !obj:datasets.cin_feature2_composite.CIN_FEATURE2
+    dataset: &train !obj:datasets.cin_feature2_composite.CIN_FEATURE1406_2
         {
             which_set: 'train',
-            data_path: %(data_path)s
+            foldi: %(foldi)d
         },
     model: !obj:mlp_with_source.MLPWithSource {
             batch_size: 1140,
@@ -68,13 +68,15 @@
         monitoring_dataset:
             {
                 'train' : *train,
-                'valid' : !obj:datasets.cin_feature2_composite.CIN_FEATURE2
+                'valid' : !obj:datasets.cin_feature2_composite.CIN_FEATURE1406_2
                 {
                     which_set: 'valid',
+                    foldi: %(foldi)d
                 },
-                'test'  : !obj:datasets.cin_feature2_composite.CIN_FEATURE2
+                'test'  : !obj:datasets.cin_feature2_composite.CIN_FEATURE1406_2
                 {
                     which_set: 'test',
+                    foldi: %(foldi)d
                 },
             },
         cost: !obj:pylearn2.costs.cost.SumOfCosts

@@ -16,14 +16,15 @@ from pylearn2.training_algorithms.bgd import BGD
 
 
 MAX_EPOCHS = 2000
-
+dir_path = "mlp-1700-1200-wd.0005-on-feature1406-2-fold"
+save_path_tmp = "../results/" + dir_path + "/mlp{}{}{}-wd{}-on-{}"
 def train_mlp_with_source(data_path,
                dim_h=[1700, 1200],
                wd_coeff=.0005):
-    save_path = "mlpws-{}-{}-wd{}-on-" + data_path
+    save_path = "mlp-{}-{}-wd{}-on-" + data_path
     save_path = save_path.format(dim_h[0], dim_h[1], wd_coeff)
     dim_850, dim_556 = dim_h
-    # save_path.format(dim_h0, dim_h1)
+    save_path = save_path_tmp.format("-" + str(dim_h), "", "", wd_coeff, filename)
 
     path = "mlp-composite0.yaml"
     with open(path, 'r') as f:
@@ -46,16 +47,17 @@ def train_mlp_with_source(data_path,
     return save_path
 
 
+
 def train_mlpws_1(data_path=None,
-                          dim_h=[1700, 1200, 1400],
-                          wd_coeff=.0005,
-                          foldi=1):
-    save_path = "mlpws-{}-{}-{}-wd{}-on-feature2086-2-{}.pkl"
-    save_path = save_path.format(dim_h[0], dim_h[1], dim_h[2], wd_coeff, foldi)
+                  save_path="mlpws-{}-{}-{}-wd{}-on-feature2086-2-{}-shuffle.pkl",
+                  dim_h=[1700, 1200, 700],
+                  wd_coeff=.0005,
+                  foldi=1):
+    save_path = save_path.format(dim_h[0], dim_h[1], dim_h[2], wd_coeff, str(foldi))
     dim_850, dim_556, dim_680 = dim_h
     # save_path.format(dim_h0, dim_h1)
 
-    path = "mlp-composite1.yaml"
+    path = "mlp-composite-5clas.yaml"
     with open(path, 'r') as f:
         train_2 = f.read()
 
@@ -107,6 +109,30 @@ def my_train():
     train.main_loop()
 
 
+def mlpwd_train_1406(filename,
+                     dim_h=[1700,1200],
+                     wd=.0005,
+                     foldi=1,
+                     yaml_path="mlp-composite0.yaml"):
+    dim_850, dim_556 = dim_h
+    save_path = save_path_tmp.format('-'+str(dim_850), '-' + str(dim_556), "", wd, filename)
+
+    with open(yaml_path, 'r') as f:
+        train_2 = f.read()
+
+    hyper_params = {'dim_h0_850': dim_850,
+                    'dim_h0_556': dim_556,
+                    'foldi': foldi,
+                    'wd_coeff': wd,
+                    'max_epochs': MAX_EPOCHS,
+                    'save_path': save_path}
+    train_2 = train_2 % (hyper_params)
+
+    train_2 = yaml_parse.load(train_2)
+    print "save to {}".format(save_path)
+    train_2.main_loop()
+    return save_path
+
 
 def cross_valid(n_fold, dim_h, datapath):
     # datapath = "feature850-2-{}.pkl"
@@ -121,6 +147,8 @@ def cross_valid(n_fold, dim_h, datapath):
     return result
 
 
+
+
 def main():
     # errors = my_monitor(
     # models=None,
@@ -128,20 +156,15 @@ def main():
     #     n=int(sys.argv[2])
     # )
 
-    # datapath = "feature850-2-{}.pkl".format(str(1))
-    # dim_h = 1700
-    n_fold = 9
-    # results = []
-    # results += cross_valid(cross_n, dim_h)
+    foldi = 10
+    if len(sys.argv) >= 2:
+        foldi = int(sys.argv[1])
+    filestr = "feature1406-2-fold{}.pkl"
+    filename = filestr.format(foldi)
+    mlpwd_train_1406(filename=filename, foldi=foldi)
 
-    # data_path = "feature1406-2-1.pkl"
-    # train_mlp_with_source(data_path=data_path)
-
-    # data_path = "feature1406-2-{}-shuffle.pkl"
-    # dim_h = [1700, 1200]
-    # cross_valid(n_fold=n_fold, dim_h=dim_h, datapath=data_path)
-    train_mlpws_1(sys.argv[1])
-
+## python mlp_composite_train.py 10 > ../results/mlp-1700-1200-wd.0005-on-feature1406-2-fold/output10.txt
 if __name__ == '__main__':
     main()
+    print "#####DONE#####"
 
