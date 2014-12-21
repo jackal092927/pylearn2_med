@@ -43,6 +43,20 @@ class MLPWithSource(MLP):
             res.append(tres)
         return T.concatenate(res, axis=1)
 
+    # def get_final_output(self, dataset):
+    #     res = []
+    #     for i, features in enumerate(dataset):
+    #         tres = shared(features)
+    #         tres = shared((self.layers[0].layers[i].fprop(tres)).eval())
+    #         tres = shared((self.layers[1].layers[i].fprop(tres)).eval())
+    #
+    #         # for layer in self.layers[0:-1]:
+    #         #     layer = layer.layers[i]
+    #         #     tres = layer.fprop(tres)
+    #
+    #         res.append(tres)
+    #     return T.concatenate(res, axis=1)
+
 class CompositeLayerWithSource(CompositeLayer):
     def get_input_source(self):
         return tuple([layer.get_input_source() for layer in self.layers])

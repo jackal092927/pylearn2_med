@@ -9,43 +9,51 @@ from pylearn2.utils import serial
 from pylearn2.gui import get_weights_report
 import numpy as np
 import gc
+from utils.loader import *
+import gzip
 
+# dir_path_dict = {'850' : "../results/mlp-1700-wd.0005-on-feature850-2-fold/",
+#                  '1406': "../results/mlp-1700-1200-wd.0005-on-feature1406-2-fold/",
+#                  '2086': "../results/mlpws-1700-1200-700-wd0.0005-on-feature2086-2/"}
+#
+# # dict for: [model_path_str, output_path_str]
+# path_str_dict = {'850': [dir_path_dict['850'] + "mlp-1700-wd0.0005-on-feature850-2-fold{}.pkl",
+#                          dir_path_dict['850'] + "feature1700-850-2-fold{}_output.pkl"],
+#                  '1406': [dir_path_dict['1406'] + "mlp-1700-1200-wd0.0005-on-feature1406-2-fold{}.pkl",
+#                           dir_path_dict['1406'] + "feature2900-1406-2-fold{}_output.pkl"],
+#                  '2086': [dir_path_dict['2086'] + "mlpws-1700-1200-700-wd0.0005-on-feature2086-2-{}.pkl",
+#                           dir_path_dict['2086'] + "feature3600-2086-2-fold{}_output.pkl"],
+#                  '850+556': [dir_path_dict['1406'] + "mlp-1700-1200-wd0.0005-on-feature855+556-2-fold{}.pkl",
+#                              dir_path_dict['1406'] + "feature2900-850+556-2-fold{}_output.pkl"]}
 
-def saveaspkl(data, path):
-    with open(path, 'wb') as f:
-        cPickle.dump(data, f, protocol=cPickle.HIGHEST_PROTOCOL)
-
-dir_path_dict = {'850': "../results/mlp-1700-wd.0005-on-feature850-2-fold/",
-                 '1406': "",
-                 '2086': "../results/mlpws-1700-1200-700-wd0.0005-on-feature2086-2/"}
-
-path_str_dict = {'850' : [dir_path_dict['850'] + "mlp-1700-wd0.0005-on-feature850-2-fold{}.pkl",
-                          dir_path_dict['850'] + "feature1700-850-2-fold{}_output.pkl"],
-                 '1406': [dir_path_dict['1406'] + "mlp-1700-1200-wd0.0005-on-feature1406-2-fold{}.pkl",
-                          dir_path_dict['1406'] + "feature2900-1406-2-fold{}_output.pkl"],
-                 '2086': [dir_path_dict['2086'] + "mlpws-1700-1200-700-wd0.0005-on-feature2086-2-{}.pkl",
-                          dir_path_dict['2086'] + "feature3600-2086-2-fold{}_output.pkl"]}
 class MLP_output():
 
-    # model_path_str =  dir_path + "mlp-1700-1200-wd0.0005-on-feature1406-2-fold{}.pkl"
-    # output_path_str = dir_path + "feature2900-1406-2-fold{}_output.pkl"
+    # dir_key = '1406'
+    # model_key = '850+556'
+    # data_key = '850+556'
 
-
-    def __init__(self, foldi, featuren=1406, with_original=True):
-        self.model_path_str, self.output_path_str = path_str_dict[str(featuren)]
+    def __init__(self,
+                 foldi,
+                 featuren=1406,
+                 dir_key='1406',
+                 model_key='1406',
+                 data_key='2900',
+                 with_original=False):
+        dir_path = dir_path_dict[dir_key]
+        model_str = model_str_dict[model_key]
+        data_str = data_str_dict[data_key]
+        # self.model_path_str, self.output_path_str = path_str_dict[str(featuren)]
         self.foldi = foldi
         self.featuren = featuren
         self.get_dataset_cin()
-        self.model_path = self.model_path_str.format(foldi)
-        self.output_path = self.output_path_str.format(foldi)
+        # self.model_path = self.model_path_str.format(foldi)
+        # model_path_str, output_path_str = path_str_dict['850+556']
+        self.model_path = dir_path + model_str.format(foldi)
+        self.output_path = dir_path + data_str.format(foldi)
+        print self.model_path, self.output_path
         self.with_original = with_original
 
     def get_dataset_cin(self):
-        """
-        The toy dataset is only meant to used for testing pipelines.
-        Do not try to visualize weights on it. It is not picture and
-        has no color channel info to support visualization
-        """
 
         # if self.featuren == 1406:
         #     trainset = CIN_FEATURE1406_2('train', self.foldi).get_data()
@@ -84,7 +92,8 @@ class MLP_output():
 
 
     def get_model_output(self, model_path):
-        model = serial.load(model_path)
+        # model = serial.load(model_path)
+        model = myload_model(model_path)
         train_set = self.trainX
         test_set = self.testX
 
@@ -107,13 +116,16 @@ class MLP_output():
 
         return train_output, test_output, train_y, test_y
 
+    def _save(self, data, path):
+        saveas_pkl_gz(data, path)
 
     def output_feature(self):
         train, test, train_y, test_y = self.get_model_output(model_path=self.model_path)
         data = ((train, train_y), (test, test_y))
         # path = "mlpws-1700-1200-wd0.0005-on-feature1406-2-1-shuffle_output.pkl"
-        print "save to:\t", self.output_path
-        saveaspkl(data, self.output_path)
+        output_path = check_path_exist(self.output_path)
+        print "save to:\t", output_path
+        self._save(data, output_path)
 
     # def loop_output_features(self, file_str=None, model_str=None):
     #     path_tmp = "../results/mlpws-1700-1200-wd0.0005-on-feature1406-2-shuffle/mlpws-1700-1200-wd0.0005-on-{}"
@@ -128,12 +140,20 @@ class MLP_output():
     #         print output_path
 
 def main():
-    foldi = 1
-    featuren = 850
+    foldn = 10
+    featuren = 1406
+    dir_key = '1406'
+    model_key = '850+556'
+    # data_key = '850+556'
+    data_key = '850+556'
+    with_original = False
     if len(sys.argv) >= 2:
         foldi = sys.argv[1]
-    for i in range(10):
-        MLP_output(foldi=i+1, featuren=featuren).output_feature()
+    for i in range(9, 10):
+        output = MLP_output(foldi=i + 1, featuren=featuren, with_original=with_original,
+                            dir_key=dir_key, model_key=model_key, data_key=data_key)
+        output.output_feature()
+
 
 if __name__ == '__main__':
     main()

@@ -2,7 +2,7 @@
     dataset: &train !obj:datasets.cin_feature2_composite.CIN_FEATURE1406_2
         {
             which_set: 'train',
-            foldi: %(foldi)d
+            foldi: %(foldi)i
         },
     model: !obj:mlp_with_source.MLPWithSource {
             batch_size: 1140,
@@ -87,7 +87,7 @@
                     !obj:pylearn2.costs.mlp.WeightDecay
                     {
                         coeffs:
-                        [ %(wd_coeff)f , %(wd_coeff)f , %(wd_coeff)f  ]
+                        [ %(wd_coeff)f, %(wd_coeff)f, %(wd_coeff)f ]
                     }
             ]
         },
